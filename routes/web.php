@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Belanja\DashboardController;
 use App\Http\Controllers\Belanja\DaftarBelanjaController;
 use App\Http\Controllers\Belanja\ItemBelanjaController;
 use App\Http\Controllers\Belanja\PolaBelanjaController;
@@ -13,9 +14,8 @@ Route::get('/', function () {
 });
 
 // Dashboard → hanya untuk user login
-Route::get('/dashboard', function () {
-    return view('dashboard.index');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
 // Routes profile
 Route::middleware('auth')->group(function () {
@@ -28,13 +28,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('belanja')->name('belanja.')->group(function () {
     // Daftar Belanja
     Route::resource('daftar', DaftarBelanjaController::class);
-
     // Item Belanja
     Route::resource('item', ItemBelanjaController::class);
-
     // Pola Belanja
     Route::resource('pola', PolaBelanjaController::class);
-
     // Pengeluaran Bulanan
     Route::resource('pengeluaran', PengeluaranBulananController::class);
 });

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Belanja;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\DaftarBelanja;
 use App\Models\ItemBelanja;
 use App\Models\PengeluaranBulanan;
@@ -14,29 +13,37 @@ class DashboardController extends Controller
     public function index()
     {
         $userId = Auth::id();
-
-        // List belanja hari ini
         $today = now()->toDateString();
+
+        // List belanja hari ini, pakai whereDate agar format tanggal cocok
         $listBelanjaHariIni = DaftarBelanja::where('user_id', $userId)
-            ->where('tanggal_belanja', $today)
-            ->with('items') // load relasi items
+            ->whereDate('tanggal_belanja', $today)
+            ->with('itemBelanjas')
             ->get();
 
-        // Ringkasan harian
-        $totalBarang = ItemBelanja::whereHas('daftarBelanja', fn($q) => $q->where('user_id', $userId))
+        // Ringkasan harian (gunakan whereDate pada field created_at)
+        $totalBarang = ItemBelanja::whereHas('daftarBelanja', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
             ->whereDate('created_at', $today)
             ->count();
 
-        $totalBelanja = ItemBelanja::whereHas('daftarBelanja', fn($q) => $q->where('user_id', $userId))
+        $totalBelanja = ItemBelanja::whereHas('daftarBelanja', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
             ->whereDate('created_at', $today)
             ->sum('total_harga');
 
-        $barangSudahDibeli = ItemBelanja::whereHas('daftarBelanja', fn($q) => $q->where('user_id', $userId))
+        $barangSudahDibeli = ItemBelanja::whereHas('daftarBelanja', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
             ->whereDate('created_at', $today)
             ->where('status', 'Sudah Dibeli')
             ->count();
 
-        $barangBelumDibeli = ItemBelanja::whereHas('daftarBelanja', fn($q) => $q->where('user_id', $userId))
+        $barangBelumDibeli = ItemBelanja::whereHas('daftarBelanja', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
             ->whereDate('created_at', $today)
             ->where('status', 'Belum Dibeli')
             ->count();
@@ -49,6 +56,8 @@ class DashboardController extends Controller
             ->where('bulan', $bulanIni)
             ->where('tahun', $tahunIni)
             ->first();
+
+        //dd($listBelanjaHariIni);
 
         return view('dashboard.index', [
             'listBelanjaHariIni' => $listBelanjaHariIni,
