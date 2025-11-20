@@ -1,78 +1,124 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+    <div class="flex justify-center items-center min-h-[75vh]">
+        <div class="w-full max-w-2xl flex flex-row rounded-2xl overflow-hidden border border-red-200/70 shadow-2xl">
+            {{-- Logo + tagline: card transparan, kiri --}}
+            <div class="hidden md:flex flex-col items-center justify-center w-1/3 min-w-[180px] max-w-[220px] bg-white/30 backdrop-blur-xl border-r border-red-100/80 px-4 py-8">
+                <img src="{{ asset('img/logo-mygroceriesround.png') }}"
+                     class="w-16 h-16 mb-5 rounded-xl border-4 border-white bg-white shadow-lg object-cover" alt="Logo"/>
+                <div class="text-md font-semibold text-red-700 text-center mb-1">MyGroceries</div>
+                <div class="text-xs text-red-500 text-center font-medium">Belanja <span class="italic font-bold">tenang</span><br>catatan rapi</div>
+            </div>
+            {{-- Form: card putih, kanan, landscape, compact --}}
+            <div class="flex-1 flex flex-col justify-center p-4 sm:p-7 bg-white">
+                <h2 class="mb-3 text-xl sm:text-2xl font-extrabold text-red-700 text-left">Daftar Akun</h2>
+                <form id="register-form" method="POST" action="{{ route('register') }}" class="space-y-2">
+                    @csrf
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full"
-                type="text" name="name" :value="old('name')"
-                required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                    {{-- Email --}}
+                    <div>
+                        <label for="email" class="block text-xs font-medium text-red-800 mb-1">Email</label>
+                        <input id="email" name="email" type="email" required value="{{ old('email') }}"
+                            class="w-full rounded border border-red-200 bg-white px-3 py-2 text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                            placeholder="Alamat email"/>
+                        @error('email')
+                            <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div class="flex gap-3">
+                        {{-- Nama lengkap --}}
+                        <div class="w-1/2">
+                            <label for="name" class="block text-xs font-medium text-red-800 mb-1">Nama Lengkap</label>
+                            <input id="name" name="name" type="text" required value="{{ old('name') }}"
+                                class="w-full rounded border border-red-200 bg-white px-3 py-2 text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                                placeholder="Nama lengkap"/>
+                            @error('name')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        {{-- Username --}}
+                        <div class="w-1/2">
+                            <label for="username" class="block text-xs font-medium text-red-800 mb-1">Username</label>
+                            <input id="username" name="username" type="text" required value="{{ old('username') }}"
+                                class="w-full rounded border border-red-200 bg-white px-3 py-2 text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                                placeholder="Username"/>
+                            @error('username')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        {{-- Pendapatan Bulanan --}}
+                        <div class="w-1/2">
+                            <label for="pendapatan_bulanan" class="block text-xs font-medium text-red-800 mb-1">Pendapatan Bulanan (Rp)</label>
+                            <input id="pendapatan_bulanan" name="pendapatan_bulanan" type="number" min="0" required value="{{ old('pendapatan_bulanan') }}"
+                                class="w-full rounded border border-red-200 bg-white px-3 py-2 text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                                placeholder="Cth: 5000000"/>
+                            @error('pendapatan_bulanan')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        {{-- Budget Bulanan --}}
+                        <div class="w-1/2">
+                            <label for="budget_bulanan" class="block text-xs font-medium text-red-800 mb-1">Budget Bulanan (Rp)</label>
+                            <input id="budget_bulanan" name="budget_bulanan" type="number" min="0" required value="{{ old('budget_bulanan') }}"
+                                class="w-full rounded border border-red-200 bg-white px-3 py-2 text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                                placeholder="Cth: 2000000"/>
+                            @error('budget_bulanan')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        {{-- Password --}}
+                        <div class="w-1/2 relative">
+                            <label for="password" class="block text-xs font-medium text-red-800 mb-1">Password</label>
+                            <input id="password" name="password" type="password" required
+                                class="w-full rounded border border-red-200 bg-white px-3 py-2 text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm pr-9"
+                                placeholder="Minimal 8 karakter"/>
+                            <button type="button" id="toggle-password" tabindex="-1"
+                                class="absolute bottom-2 right-3 text-red-400 focus:outline-none" aria-label="Show password">
+                                <i class="fa-solid fa-eye" id="icon-eye"></i>
+                            </button>
+                            @error('password')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        {{-- Konfirmasi Password --}}
+                        <div class="w-1/2">
+                            <label for="password_confirmation" class="block text-xs font-medium text-red-800 mb-1">Konfirmasi Password</label>
+                            <input id="password_confirmation" name="password_confirmation" type="password" required
+                                class="w-full rounded border border-red-200 bg-white px-3 py-2 text-red-800 placeholder:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                                placeholder="Ulangi password"/>
+                        </div>
+                    </div>
+                    <button type="submit"
+                        class="w-full mt-2 rounded-md bg-gradient-to-r from-red-600 to-red-400 py-2 text-white font-bold tracking-wide shadow-lg hover:from-red-700 hover:to-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all">
+                        Daftar & Mulai Atur Keuangan
+                    </button>
+                    <p class="mt-2 text-xs text-center text-red-700">
+                        Sudah punya akun?
+                        <a class="text-white hover:underline bg-red-600 px-2 py-1 rounded font-semibold transition-colors"
+                           href="{{ route('login') }}">Login di sini →</a>
+                    </p>
+                </form>
+            </div>
         </div>
-
-        <!-- Username -->
-        <div class="mt-4">
-            <x-input-label for="username" :value="__('Username')" />
-            <x-text-input id="username" class="block mt-1 w-full"
-                type="text" name="username" :value="old('username')"
-                required autocomplete="username" />
-            <x-input-error :messages="$errors->get('username')" class="mt-2" />
-        </div>
-
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full"
-                type="email" name="email" :value="old('email')"
-                required autocomplete="email" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Pendapatan Bulanan -->
-        <div class="mt-4">
-            <x-input-label for="pendapatan_bulanan" :value="__('Pendapatan Bulanan (Rp)')" />
-            <x-text-input id="pendapatan_bulanan" class="block mt-1 w-full"
-                type="number" name="pendapatan_bulanan" :value="old('pendapatan_bulanan')"
-                required min="0" />
-            <x-input-error :messages="$errors->get('pendapatan_bulanan')" class="mt-2" />
-        </div>
-
-        <!-- Budget Bulanan -->
-        <div class="mt-4">
-            <x-input-label for="budget_bulanan" :value="__('Budget Bulanan (Rp)')" />
-            <x-text-input id="budget_bulanan" class="block mt-1 w-full"
-                type="number" name="budget_bulanan" :value="old('budget_bulanan')"
-                required min="0" />
-            <x-input-error :messages="$errors->get('budget_bulanan')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full"
-                type="password" name="password" required
-                autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                type="password" name="password_confirmation" required
-                autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
+    </div>
+    <script>
+        // Toggle password visibility
+        const eyeBtn = document.getElementById('toggle-password');
+        const pwdInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('icon-eye');
+        eyeBtn.addEventListener('click', function() {
+            if (pwdInput.type === "password") {
+                pwdInput.type = "text";
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                pwdInput.type = "password";
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        });
+    </script>
 </x-guest-layout>

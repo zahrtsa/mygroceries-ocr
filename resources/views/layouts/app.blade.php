@@ -4,82 +4,105 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" href="{{ asset('img/logo-mygroceriesround.png') }}">
     <title>{{ config('app.name', 'MyGroceries') }}</title>
-
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    <!-- Tailwind & Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-@include('sweetalert::alert')
 <body class="bg-gray-100 text-gray-900 font-sans antialiased">
-    <!-- Navbar -->
-    <nav class="fixed top-0 left-0 w-full bg-white shadow flex items-center justify-between px-8 py-4 z-30">
-        <div class="flex items-center gap-3">
-            <img src="{{ asset('img/logo-title_MyGroceries.png') }}" alt="MyGroceries Logo" class="h-12 w-auto object-contain" />
-        </div>
-        <div class="flex items-center gap-6">
-            <button class="relative">
-                <i class="fa fa-bell text-2xl text-gray-700"></i>
-                <span class="absolute top-0 right-0 bg-red-500 text-white rounded-full text-xs w-4 h-4 flex items-center justify-center">3</span>
-            </button>
-        </div>
-    </nav>
 
-    <div class="flex pt-20 min-h-screen"> <!-- pt-20 karena navbar fixed, harus ada ruang -->
-        <!-- Sidebar -->
-        <aside class="fixed top-20 left-0 w-64 bg-[#ed000c] flex flex-col p-6 shadow-lg h-[calc(100vh-5rem)] z-20"> <!-- top-20 samakan tinggi navbar -->
-            <div class="mb-6">
-                <span class="font-semibold text-white">{{ Auth::user()->name }}</span><br>
-                <span class="text-white text-sm">{{ Auth::user()->email }}</span>
-            </div>
-            <nav class="flex-1">
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 rounded transition hover:bg-white/20 {{ request()->routeIs('dashboard') ? 'bg-white/20' : '' }}">
-                            <i class="fa fa-home mr-3"></i> Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('belanja.item.index') }}" class="flex items-center px-3 py-2 rounded transition hover:bg-white/20 {{ request()->routeIs('belanja.daftar.index') ? 'bg-white/20' : '' }}">
-                            <i class="fas fa-list mr-3"></i> List Belanja
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('belanja.rekapanharian') }}" class="flex items-center px-3 py-2 rounded transition hover:bg-white/20">
-                            <i class="fa fa-history mr-3"></i> Rekapan Harian
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="flex items-center px-3 py-2 rounded transition hover:bg-white/20">
-                            <i class="fa fa-file-invoice-dollar mr-3"></i> Laporan Keuangan
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <div class="mt-8 border-t border-white/30 pt-6">
-                <a href="{{ route('profile.edit') }}" class="flex items-center px-3 py-2 rounded hover:bg-white/20 text-white">
-                    <i class="fa fa-cog mr-3"></i> Setting
-                </a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="flex items-center w-full px-3 py-2 mt-2 rounded hover:bg-white/20 text-white text-left">
-                        <i class="fa fa-sign-out-alt mr-3"></i> Logout
-                    </button>
-                </form>
-            </div>
-        </aside>
+@if(session('success'))
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Sukses',
+        text: '{{ session('success') }}',
+        showConfirmButton: true
+    });
+</script>
+@endif
+@if(session('error'))
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: '{{ session('error') }}',
+        showConfirmButton: true
+    });
+</script>
+@endif
 
-        <!-- Content Scrollable -->
-        <div class="flex-1 ml-64 mt-0">
-            <main class="p-8 min-h-[calc(100vh-5rem)] overflow-y-auto">
-                @yield('content')
-            </main>
-        </div>
+<!-- Navbar -->
+<nav class="fixed top-0 left-0 w-full h-16 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between px-8 z-40">
+    <div class="flex items-center gap-4">
+        <img src="{{ asset('img/logo-mygroceries.png') }}" alt="MyGroceries Logo" class="h-9 w-auto object-contain rounded-lg border border-gray-200 shadow" />
+        <span class="text-xl font-extrabold tracking-tight text-[#ed1c24] drop-shadow-sm">MyGroceries</span>
     </div>
+    <div class="flex items-center gap-5">
+        <button class="relative">
+            <i class="fa fa-bell text-xl text-gray-600 hover:text-[#ed1c24]"></i>
+            <span class="absolute -top-1 right-0 bg-rose-500 text-white rounded-full text-[10px] min-w-5 h-5 px-1 flex items-center justify-center border-2 border-white">3</span>
+        </button>
+        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&color=fff&background=ed1c24" 
+             class="w-10 h-10 rounded-full ring-2 ring-white object-cover shadow" alt="user"/>
+    </div>
+</nav>
+
+<!-- Sidebar (mulai di bawah navbar) -->
+<aside class="fixed top-16 left-0 w-64 bg-[#ed1c24] flex flex-col p-6 h-[calc(100vh-4rem)] border-r border-gray-200 z-30">
+    <div class="mb-7">
+        <div class="text-white/90 font-semibold text-base leading-tight truncate">{{ Auth::user()->name }}</div>
+        <div class="text-white/80 text-xs truncate">{{ Auth::user()->email }}</div>
+    </div>
+    <nav class="flex-1">
+        <ul class="space-y-1">
+            <li>
+                <a href="{{ route('dashboard') }}"
+                   class="flex items-center px-3 py-2 rounded-xl font-medium gap-3 transition hover:bg-white/10 hover:text-white {{ request()->routeIs('dashboard') ? 'bg-white/10 text-white font-bold' : 'text-rose-50' }}">
+                    <i class="fa fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('belanja.item.index') }}"
+                   class="flex items-center px-3 py-2 rounded-xl font-medium gap-3 transition hover:bg-white/10 hover:text-white {{ request()->routeIs('belanja.daftar.index') ? 'bg-white/10 text-white font-bold' : 'text-rose-50' }}">
+                    <i class="fas fa-list"></i> List Belanja
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('belanja.rekapanharian') }}"
+                   class="flex items-center px-3 py-2 rounded-xl font-medium gap-3 transition hover:bg-white/10 hover:text-white {{ request()->routeIs('belanja.rekapanharian') ? 'bg-white/10 text-white font-bold' : 'text-rose-50' }}">
+                    <i class="fa fa-history"></i> Rekapan Harian
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('belanja.pengeluaran.index') }}"
+                   class="flex items-center px-3 py-2 rounded-xl font-medium gap-3 transition hover:bg-white/10 hover:text-white {{ request()->routeIs('belanja.pengeluaran.index') ? 'bg-white/10 text-white font-bold' : 'text-rose-50' }}">
+                    <i class="fa fa-file-invoice-dollar"></i> Laporan Keuangan
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <div class="mt-8 border-t border-white/20 pt-5">
+        <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/10 text-white/90 transition">
+            <i class="fa fa-cog"></i> Setting
+        </a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="flex items-center w-full gap-3 px-3 py-2 mt-2 rounded-xl hover:bg-white/10 text-white/90 text-left transition">
+                <i class="fa fa-sign-out-alt"></i> Logout
+            </button>
+        </form>
+    </div>
+</aside>
+
+<!-- Main content -->
+<div class="ml-64 pt-16 min-h-screen">
+    <main class="p-8 w-full min-h-[calc(100vh-4rem)]">
+        @yield('content')
+    </main>
+</div>
 </body>
+</html>

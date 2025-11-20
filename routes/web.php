@@ -1,17 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Belanja\DashboardController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Belanja\BelanjaController;
+use App\Http\Controllers\Belanja\DashboardController;
 use App\Http\Controllers\Belanja\ItemBelanjaController;
-use App\Http\Controllers\Belanja\PolaBelanjaController;
 use App\Http\Controllers\Belanja\PengeluaranBulananController;
+use App\Http\Controllers\Belanja\PolaBelanjaController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 
 // Halaman awal → redirect ke login
 Route::get('/', function () {
     return redirect()->route('login');
 });
+Route::get('/register', [RegisteredUserController::class, 'create'])
+    ->middleware('guest')
+    ->name('register');
+
+Route::post('/register', [RegisteredUserController::class, 'store'])
+    ->middleware('guest');
 
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -30,7 +37,7 @@ Route::middleware('auth')->prefix('belanja')->name('belanja.')->group(function (
     // Route::resource('daftar', DaftarBelanjaController::class);
     // Route::resource('daftar.item', ItemBelanjaController::class)->shallow(); // RESTful, agar route item edit/delete cukup /item/{id}
     Route::resource('item', BelanjaController::class);
-    Route::get('/rekapanharian', [BelanjaController::class, 'rekapHarian'])->name('rekapanharian');
+    Route::get('/rekapanharian', [BelanjaController::class, 'rekapanHarian'])->name('rekapanharian');
     // Pola, Pengeluaran Bulanan tetap
     Route::resource('pola', PolaBelanjaController::class);
     Route::resource('pengeluaran', PengeluaranBulananController::class);
