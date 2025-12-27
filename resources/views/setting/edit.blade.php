@@ -6,9 +6,6 @@
 
         {{-- HEADER TANPA BACKGROUND --}}
         <div class="mb-8">
-            <p class="text-xs font-semibold tracking-[0.28em] text-emerald-500 uppercase">
-                Account
-            </p>
             <h1 class="mt-1 text-3xl font-semibold text-slate-900">
                 Pengaturan Akun
             </h1>

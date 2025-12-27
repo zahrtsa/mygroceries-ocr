@@ -62,7 +62,7 @@ class PengeluaranBulananController extends Controller
 
         // Ringkasan untuk card atas (pakai logika lama kamu)
         $total_pendapatan = ($user->pendapatan_bulanan ?? 0) * 12;
-        $budget_belanja = ($user->budget_bulanan ?? 0) * 12;
+        $budget_belanja = ($user->budget_bulanan ?? 0);
         $total_pengeluaran = $rekap->sum('total_pengeluaran');
         $saldo_bersih = $rekap->sum('saldo_bersih');
 
