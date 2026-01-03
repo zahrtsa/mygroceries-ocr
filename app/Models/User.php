@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->hasOne(PolaBelanja::class, 'user_id');
     }
 
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class);
+    }
+
     public function pengeluaranBulanan()
     {
         return $this->hasMany(PengeluaranBulanan::class, 'user_id');

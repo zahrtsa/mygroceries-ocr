@@ -8,6 +8,7 @@ use App\Http\Controllers\Belanja\ItemBelanjaController;
 use App\Http\Controllers\Belanja\PengeluaranBulananController;
 use App\Http\Controllers\Belanja\PolaBelanjaController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReceiptController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman awal → redirect ke login
@@ -44,6 +45,10 @@ Route::middleware('auth')->prefix('belanja')->name('belanja.')->group(function (
     // Pola, Pengeluaran Bulanan tetap
     Route::resource('pola', PolaBelanjaController::class);
     Route::resource('pengeluaran', PengeluaranBulananController::class);
+
+    Route::resource('receipts', ReceiptController::class);
+    Route::post('receipts/{receipt}/reset-ocr', [ReceiptController::class, 'resetToOCR'])
+        ->name('receipts.reset-ocr');
 });
 
 require __DIR__.'/auth.php';

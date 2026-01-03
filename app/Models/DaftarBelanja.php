@@ -40,4 +40,11 @@ class DaftarBelanja extends Model
     {
         return $this->hasOne(UploadStruk::class, 'daftar_belanja_id');
     }
+
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class);
+        // atau hasOne(Receipt::class) kalau kamu batasi 1 struk per daftar
+    }
+
 }
