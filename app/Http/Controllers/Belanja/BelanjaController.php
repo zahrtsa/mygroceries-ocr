@@ -6,22 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\DaftarBelanja;
 use App\Models\ItemBelanja;
 use App\Models\PengeluaranBulanan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BelanjaController extends Controller
 {
+    // ================= LIST & CRUD ITEM HARIAN =================
+
     // List semua item hari ini (GET /belanja/item)
     public function index(Request $request)
     {
         $tanggal = now()->toDateString();
-        $search  = $request->input('search');
-        $userId  = Auth::id();
+        $search = $request->input('search');
+        $userId = Auth::id();
 
         // Dapatkan atau auto-buat daftar belanja hari ini
         $daftar = DaftarBelanja::firstOrCreate(
             [
-                'user_id'         => $userId,
+                'user_id' => $userId,
                 'tanggal_belanja' => $tanggal,
             ],
             ['total_belanja' => 0]
@@ -62,13 +65,13 @@ class BelanjaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_barang'  => 'required|string|max:255',
-            'qty'          => 'required|integer|min:1',
+            'nama_barang' => 'required|string|max:255',
+            'qty' => 'required|integer|min:1',
             'harga_satuan' => 'required|numeric|min:0',
         ]);
 
-        $user    = Auth::user();
-        $userId  = $user->id;
+        $user = Auth::user();
+        $userId = $user->id;
         $tanggal = now()->toDateString();
 
         $bulanIni = now()->month;
@@ -76,14 +79,14 @@ class BelanjaController extends Controller
 
         // Total belanja bulan ini (semua item, apa pun status)
         $totalBelanjaBulanIni = ItemBelanja::whereHas('daftarBelanja', function ($q) use ($userId, $bulanIni, $tahunIni) {
-                $q->where('user_id', $userId)
-                  ->whereMonth('tanggal_belanja', $bulanIni)
-                  ->whereYear('tanggal_belanja', $tahunIni);
-            })
+            $q->where('user_id', $userId)
+              ->whereMonth('tanggal_belanja', $bulanIni)
+              ->whereYear('tanggal_belanja', $tahunIni);
+        })
             ->sum('total_harga');
 
         $budgetBulanan = $user->budget_bulanan ?? 0;
-        $total_harga   = $request->qty * $request->harga_satuan;
+        $total_harga = $request->qty * $request->harga_satuan;
 
         // Cek batas budget sebelum simpan
         if ($budgetBulanan > 0 && ($totalBelanjaBulanIni + $total_harga) > $budgetBulanan) {
@@ -93,16 +96,16 @@ class BelanjaController extends Controller
                 ->route('belanja.item.index')
                 ->with(
                     'error',
-                    'Belanja bulan ini sudah melewati atau akan melewati budget bulanan. ' .
-                    'Budget bulanan: Rp ' . number_format($budgetBulanan, 0, ',', '.') .
-                    ' | Sisa budget: Rp ' . number_format($sisaBudget, 0, ',', '.')
+                    'Belanja bulan ini sudah melewati atau akan melewati budget bulanan. '.
+                    'Budget bulanan: Rp '.number_format($budgetBulanan, 0, ',', '.').
+                    ' | Sisa budget: Rp '.number_format($sisaBudget, 0, ',', '.')
                 );
         }
 
         // Masih dalam batas budget -> simpan
         $daftar = DaftarBelanja::firstOrCreate(
             [
-                'user_id'         => $userId,
+                'user_id' => $userId,
                 'tanggal_belanja' => $tanggal,
             ],
             ['total_belanja' => 0]
@@ -110,18 +113,18 @@ class BelanjaController extends Controller
 
         $item = ItemBelanja::create([
             'daftar_belanja_id' => $daftar->id,
-            'nama_barang'       => $request->nama_barang,
-            'qty'               => $request->qty,
-            'harga_satuan'      => $request->harga_satuan,
-            'total_harga'       => $total_harga,
-            'status'            => 'Belum Dibeli',
+            'nama_barang' => $request->nama_barang,
+            'qty' => $request->qty,
+            'harga_satuan' => $request->harga_satuan,
+            'total_harga' => $total_harga,
+            'status' => 'Belum Dibeli',
         ]);
 
         $daftar->update([
             'total_belanja' => $daftar->itemBelanjas()->sum('total_harga'),
         ]);
 
-        // Catatan: item baru default "Belum Dibeli", jadi BELUM menyentuh PengeluaranBulanan di sini.
+        // Item baru default "Belum Dibeli", jadi belum menyentuh PengeluaranBulanan
 
         return redirect()->route('belanja.item.index')->with('success', 'Item berhasil ditambahkan!');
     }
@@ -161,17 +164,17 @@ class BelanjaController extends Controller
             $budgetBulanan = $user->budget_bulanan ?? 0;
 
             if ($budgetBulanan > 0) {
-                $userId   = $user->id;
-                $tanggal  = $item->daftarBelanja->tanggal_belanja;
+                $userId = $user->id;
+                $tanggal = $item->daftarBelanja->tanggal_belanja;
                 $bulanIni = $tanggal->month;
                 $tahunIni = $tanggal->year;
 
                 // Total "Sudah Dibeli" lain di bulan ini (kecuali item ini)
                 $totalSudahDibeli = ItemBelanja::whereHas('daftarBelanja', function ($q) use ($userId, $bulanIni, $tahunIni) {
-                        $q->where('user_id', $userId)
-                          ->whereMonth('tanggal_belanja', $bulanIni)
-                          ->whereYear('tanggal_belanja', $tahunIni);
-                    })
+                    $q->where('user_id', $userId)
+                      ->whereMonth('tanggal_belanja', $bulanIni)
+                      ->whereYear('tanggal_belanja', $tahunIni);
+                })
                     ->where('status', 'Sudah Dibeli')
                     ->where('id', '!=', $item->id)
                     ->sum('total_harga');
@@ -186,9 +189,9 @@ class BelanjaController extends Controller
 
                     return back()->with(
                         'error',
-                        'Tidak bisa menandai item ini sebagai "Sudah Dibeli" karena akan melewati budget bulanan. ' .
-                        'Budget bulanan: Rp ' . number_format($budgetBulanan, 0, ',', '.') .
-                        ' | Sisa budget: Rp ' . number_format($sisaBudget, 0, ',', '.')
+                        'Tidak bisa menandai item ini sebagai "Sudah Dibeli" karena akan melewati budget bulanan. '.
+                        'Budget bulanan: Rp '.number_format($budgetBulanan, 0, ',', '.').
+                        ' | Sisa budget: Rp '.number_format($sisaBudget, 0, ',', '.')
                     );
                 }
             }
@@ -215,28 +218,28 @@ class BelanjaController extends Controller
 
         // MODE UPDATE PENUH (dari form edit)
         $request->validate([
-            'nama_barang'  => 'required|string|max:255',
-            'qty'          => 'required|integer|min:1',
+            'nama_barang' => 'required|string|max:255',
+            'qty' => 'required|integer|min:1',
             'harga_satuan' => 'required|numeric|min:0',
-            'status'       => 'required|in:Sudah Dibeli,Belum Dibeli',
+            'status' => 'required|in:Sudah Dibeli,Belum Dibeli',
         ]);
 
-        $oldTotal  = $item->total_harga;
+        $oldTotal = $item->total_harga;
         $oldStatus = $item->status;
 
         $item->update([
-            'nama_barang'  => $request->nama_barang,
-            'qty'          => $request->qty,
+            'nama_barang' => $request->nama_barang,
+            'qty' => $request->qty,
             'harga_satuan' => $request->harga_satuan,
-            'total_harga'  => $request->qty * $request->harga_satuan,
-            'status'       => $request->status,
+            'total_harga' => $request->qty * $request->harga_satuan,
+            'status' => $request->status,
         ]);
 
         $item->daftarBelanja->update([
             'total_belanja' => $item->daftarBelanja->itemBelanjas()->sum('total_harga'),
         ]);
 
-        $newTotal  = $item->total_harga;
+        $newTotal = $item->total_harga;
         $newStatus = $item->status;
 
         // Hitung selisih pengeluaran hanya untuk bagian "Sudah Dibeli"
@@ -278,10 +281,11 @@ class BelanjaController extends Controller
         return redirect()->route('belanja.item.index')->with('success', 'Item berhasil dihapus!');
     }
 
-    // Rekap harian
+    // ================= REKAP HARIAN =================
+
     public function rekapanHarian(Request $request)
     {
-        $userId  = Auth::id();
+        $userId = Auth::id();
         $tanggal = $request->input('tanggal', now()->toDateString());
 
         $daftar = DaftarBelanja::where('user_id', $userId)
@@ -297,7 +301,7 @@ class BelanjaController extends Controller
             $totalBelanja = ItemBelanja::where('daftar_belanja_id', $daftar->id)
                 ->sum('total_harga');
         } else {
-            $items        = collect();
+            $items = collect();
             $totalBelanja = 0;
         }
 
@@ -309,24 +313,100 @@ class BelanjaController extends Controller
         return view('belanja.rekapanharian', compact('items', 'tanggal', 'totalBelanja', 'optionsTanggal'));
     }
 
-    // ==================== HELPER PENGELUARAN DARI ITEM ====================
+    // ================= LAPORAN PENGELUARAN TAHUNAN =================
+
+    // GET /belanja/pengeluaran
+    public function pengeluaranIndex(Request $request)
+    {
+        $user = Auth::user();
+        $userId = $user->id;
+
+        // Tahun yang dipilih (default: tahun sekarang)
+        $tahun = (int) $request->input('tahun', now()->year);
+
+        // Daftar tahun yang punya data pengeluaran
+        $daftar_tahun = PengeluaranBulanan::where('user_id', $userId)
+            ->select('tahun')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+
+        if (empty($daftar_tahun)) {
+            $daftar_tahun = [$tahun];
+        }
+
+        // Data pengeluaran satu tahun
+        $pengeluaran_tahunan = PengeluaranBulanan::where('user_id', $userId)
+            ->where('tahun', $tahun)
+            ->get();
+
+        $adaDataTahunIni = $pengeluaran_tahunan->isNotEmpty();
+
+        // Sesuaikan perhitungan ini dengan field di model User/PengeluaranBulanan milikmu
+        $total_pendapatan = $user->total_pendapatan_tahun ?? 0;          // kalau belum ada, sementara 0
+        $budget_belanja = $user->budget_bulanan ? $user->budget_bulanan * 12 : 0;
+        $total_pengeluaran = $pengeluaran_tahunan->sum('total_pengeluaran');
+        $saldo_bersih = $total_pendapatan - $total_pengeluaran;
+
+        // Persentase untuk donut
+        $total_for_pie = max($total_pendapatan, 0);
+        if ($total_for_pie <= 0) {
+            $persen_pendapatan = 0;
+            $persen_pengeluaran = 0;
+            $persen_saldo = 0;
+        } else {
+            $persen_pengeluaran = round(($total_pengeluaran / $total_for_pie) * 100);
+            $persen_saldo = round((max($saldo_bersih, 0) / $total_for_pie) * 100);
+            $persen_pendapatan = max(0, 100 - $persen_pengeluaran - $persen_saldo);
+        }
+
+        // Laporan bulanan dengan nama bulan lengkap
+        $laporan_bulanan = [];
+        for ($bulan = 1; $bulan <= 12; ++$bulan) {
+            $totalBelanjaBulan = $pengeluaran_tahunan
+                ->where('bulan', $bulan)
+                ->sum('total_pengeluaran');
+
+            $laporan_bulanan[] = [
+                'bulan' => Carbon::create(null, $bulan, 1)->translatedFormat('F'),
+                'total_belanja' => $totalBelanjaBulan,
+            ];
+        }
+
+        return view('belanja.pengeluaran-index', [
+            'tahun' => $tahun,
+            'daftar_tahun' => $daftar_tahun,
+            'adaDataTahunIni' => $adaDataTahunIni,
+            'total_pendapatan' => $total_pendapatan,
+            'budget_belanja' => $budget_belanja,
+            'total_pengeluaran' => $total_pengeluaran,
+            'saldo_bersih' => $saldo_bersih,
+            'persen_pendapatan' => $persen_pendapatan,
+            'persen_pengeluaran' => $persen_pengeluaran,
+            'persen_saldo' => $persen_saldo,
+            'laporan_bulanan' => $laporan_bulanan,
+        ]);
+    }
+
+    // ================= HELPER PENGELUARAN DARI ITEM =================
 
     private function updatePengeluaranBulananFromItem(ItemBelanja $item, float $pertambahan)
     {
-        $user  = $item->daftarBelanja->user;
-        $date  = $item->daftarBelanja->tanggal_belanja ?? now();
+        $user = $item->daftarBelanja->user;
+        $date = $item->daftarBelanja->tanggal_belanja ?? now();
         $bulan = $date->format('n');
         $tahun = $date->format('Y');
 
         $pengeluaran = PengeluaranBulanan::firstOrCreate(
             [
                 'user_id' => $user->id,
-                'bulan'   => $bulan,
-                'tahun'   => $tahun,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
             ],
             [
                 'total_pengeluaran' => 0,
-                'saldo_bersih'      => 0,
+                'saldo_bersih' => 0,
             ]
         );
 

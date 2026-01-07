@@ -128,17 +128,15 @@
                         Daftar & Mulai Atur Keuangan
                     </button>
 
+                    {{-- Link ke login: versi lebih simple --}}
                     <p class="mt-2 text-xs text-center text-red-700">
                         Sudah punya akun?
                         <a href="{{ route('login') }}"
-                           class="relative inline-flex items-center justify-center px-[1px] py-[1px] rounded-full
-                                  bg-gradient-to-r from-red-600 via-red-500 to-red-400
-                                  hover:from-red-700 hover:via-red-600 hover:to-red-500 transition-all duration-200 mx-1">
-                            <span class="px-4 py-1 rounded-full border border-red-500/80 bg-white/10 backdrop-blur-sm
-                                         text-red-700 text-[11px] font-semibold tracking-wide
-                                         hover:text-white transition-colors duration-200">
-                                Login di sini
-                            </span>
+                           class="inline-flex items-center justify-center px-4 py-1.5 ml-1 rounded-full
+                                  border border-red-300 text-[11px] font-semibold tracking-wide
+                                  text-red-700 bg-white hover:bg-red-50 hover:border-red-400
+                                  focus:outline-none focus:ring-2 focus:ring-red-300/70 transition">
+                            Login di sini
                         </a>
                     </p>
                 </form>

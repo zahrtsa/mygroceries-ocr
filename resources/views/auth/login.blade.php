@@ -94,18 +94,24 @@
                         </button>
                     </div>
 
+                    {{-- CTA Daftar gratis (versi baru) --}}
                     <p class="mt-4 text-xs text-center text-red-700">
                         Belum punya akun?
                         <a href="{{ route('register') }}"
-                           class="relative inline-flex items-center justify-center px-[1px] py-[1px] rounded-full
-                                  bg-gradient-to-r from-red-600 via-red-500 to-red-400
-                                  hover:from-red-700 hover:via-red-600 hover:to-red-500
-                                  transition-all duration-200 mx-1">
-                            <span class="px-4 py-1 rounded-full border border-red-500/80 bg-white/10 backdrop-blur-sm
-                                         text-red-700 text-[11px] font-semibold tracking-wide
-                                         hover:text-white transition-colors duration-200">
-                                Daftar gratis
-                            </span>
+                           class="inline-flex items-center justify-center mt-2">
+                            <button type="button"
+                                class="relative inline-flex items-center justify-center px-5 py-2.5
+                                       rounded-full text-xs font-semibold tracking-wide
+                                       text-white shadow-md
+                                       bg-gradient-to-r from-red-600 via-red-500 to-rose-500
+                                       hover:from-red-700 hover:via-red-600 hover:to-rose-600
+                                       focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2
+                                       transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+                                <span class="mr-1">
+                                    Daftar gratis
+                                </span>
+                                <i class="fa-solid fa-arrow-right text-[10px] opacity-90"></i>
+                            </button>
                         </a>
                     </p>
                 </form>

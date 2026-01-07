@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen py-8 sm:py-10">
+<div class="min-h-screen py-8 sm:py-10 bg-slate-50">
     <div class="max-w-5xl mx-auto px-4" x-data="{ openYear: false }">
 
         {{-- HEADER --}}
         <div class="mb-6 sm:mb-8">
-            <p class="text-[11px] font-semibold tracking-[0.28em] text-emerald-500 uppercase">
-                LAPORAN
-            </p>
-            <div class="mt-1 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div class="mt-2 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900">
-                        Rekap Pengeluaran
+                    <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900 flex items-center gap-2">
+                        Laporan Pengeluaran
+                        <span class="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            {{ $tahun }}
+                        </span>
                     </h1>
-                    <p class="mt-1 text-sm text-slate-600">
-                        Ringkasan pendapatan, pengeluaran, dan saldo bersih berdasarkan tahun yang kamu pilih.
+                    <p class="mt-1 text-sm text-slate-600 max-w-xl">
+                        Ringkasan pendapatan, pengeluaran, dan saldo bersih untuk satu tahun penuh.
                     </p>
                 </div>
             </div>
@@ -24,53 +24,84 @@
         {{-- 2 CARD: RINGKASAN & DONUT --}}
         <div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2">
             {{-- Ringkasan tahun --}}
-            <div class="rounded-2xl bg-white shadow-md border border-slate-200 p-5">
-                <h2 class="text-sm font-semibold text-slate-900 mb-4">
+            <div class="rounded-2xl bg-white shadow-md border border-slate-200/80 p-5">
+                <h2 class="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                        <i class="fa-solid fa-chart-line text-xs"></i>
+                    </span>
                     Ringkasan Tahun {{ $tahun }}
                 </h2>
-                <dl class="space-y-3 text-sm">
-                    <div class="flex items-center justify-between">
-                        <dt class="text-slate-500">Total Pendapatan</dt>
-                        <dd class="font-semibold text-emerald-600">
+                <dl class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="rounded-xl bg-emerald-50/60 border border-emerald-100 px-3 py-2">
+                        <dt class="text-[11px] font-semibold tracking-wide text-emerald-700 uppercase">
+                            Total Pendapatan
+                        </dt>
+                        <dd class="mt-1 text-sm font-semibold text-emerald-800">
                             Rp {{ number_format($total_pendapatan, 0, ',', '.') }}
                         </dd>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <dt class="text-slate-500">Budget Belanja</dt>
-                        <dd class="font-semibold text-sky-600">
+                    <div class="rounded-xl bg-sky-50/70 border border-sky-100 px-3 py-2">
+                        <dt class="text-[11px] font-semibold tracking-wide text-sky-700 uppercase">
+                            Budget Belanja
+                        </dt>
+                        <dd class="mt-1 text-sm font-semibold text-sky-800">
                             Rp {{ number_format($budget_belanja, 0, ',', '.') }}
                         </dd>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <dt class="text-slate-500">Total Pengeluaran</dt>
-                        <dd class="font-semibold text-red-600">
+                    <div class="rounded-xl bg-rose-50/80 border border-rose-100 px-3 py-2">
+                        <dt class="text-[11px] font-semibold tracking-wide text-rose-700 uppercase">
+                            Total Pengeluaran
+                        </dt>
+                        <dd class="mt-1 text-sm font-semibold text-rose-700">
                             Rp {{ number_format($total_pengeluaran, 0, ',', '.') }}
                         </dd>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <dt class="text-slate-500">Saldo Bersih</dt>
-                        <dd class="font-semibold text-slate-900">
+                    <div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2">
+                        <dt class="text-[11px] font-semibold tracking-wide text-slate-600 uppercase">
+                            Saldo Bersih
+                        </dt>
+                        <dd class="mt-1 text-sm font-semibold text-slate-900">
                             Rp {{ number_format($saldo_bersih, 0, ',', '.') }}
                         </dd>
                     </div>
                 </dl>
             </div>
 
-            {{-- Donut chart --}}
-            <div class="rounded-2xl bg-white shadow-md border border-slate-200 p-5">
+            {{-- Donut chart: mobile+desktop row, tablet column --}}
+            <div class="rounded-2xl bg-white shadow-md border border-slate-200/80 p-5">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-sm font-semibold text-slate-900">
+                    <h2 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+                            <i class="fa-solid fa-chart-pie text-xs"></i>
+                        </span>
                         Komposisi Keuangan
                     </h2>
                     <p class="text-xs text-slate-500">
-                        Pendapatan vs Belanja vs Saldo
+                        Pendapatan vs belanja vs saldo
                     </p>
                 </div>
-                <div class="flex items-center gap-4">
-                    <div class="w-32 h-32 mx-auto">
-                        <canvas id="donut-chart"></canvas>
+
+                {{-- base: row; sm (tablet): col; lg (desktop): row lagi --}}
+                <div class="flex items-center gap-4
+                            flex-row
+                            sm:flex-col
+                            lg:flex-row">
+
+                    {{-- Chart --}}
+                    <div class="flex items-center justify-center
+                                w-auto
+                                sm:w-full
+                                lg:w-auto">
+                        <div class="w-28 h-28 xs:w-32 xs:h-32 sm:w-40 sm:h-40 lg:w-32 lg:h-32">
+                            <canvas id="donut-chart"></canvas>
+                        </div>
                     </div>
-                    <div class="flex-1 space-y-2 text-xs">
+
+                    {{-- Legend --}}
+                    <div class="flex-1 space-y-2 text-xs
+                                w-auto
+                                sm:w-full
+                                lg:w-auto">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -104,18 +135,18 @@
         </div>
 
         {{-- CARD TABEL BULAN / TOTAL BELANJA --}}
-        <div class="rounded-2xl bg-white shadow-xl border border-slate-200">
-            <div class="flex flex-col gap-3 border-b border-slate-200 px-4 sm:px-6 py-4 md:flex-row md:items-center md:justify-between">
+        <div class="rounded-3xl bg-white shadow-xl border border-slate-200/80 overflow-hidden">
+            <div class="flex flex-col gap-3 border-b border-slate-200 px-4 sm:px-6 py-4 md:flex-row md:items-center md:justify-between bg-slate-50/70">
                 <div>
                     <h2 class="text-sm font-semibold text-slate-900">
                         Detail Bulanan {{ $tahun }}
                     </h2>
                     <p class="text-xs text-slate-500">
-                        Daftar total belanja setiap bulan dalam tahun berjalan.
+                        Total belanja per bulan sepanjang tahun.
                     </p>
                 </div>
 
-                {{-- FILTER TAHUN: custom dropdown mirip Rekap Harian --}}
+                {{-- FILTER TAHUN --}}
                 <form
                     action="{{ route('belanja.pengeluaran.index') }}"
                     method="GET"
@@ -128,7 +159,6 @@
 
                     <div class="w-full sm:w-52">
                         <div class="relative">
-                            {{-- tombol tampilan tahun --}}
                             <button type="button"
                                     @click="openYear = !openYear"
                                     class="w-full flex items-center justify-between rounded-full border border-slate-200 bg-white
@@ -142,7 +172,6 @@
                                    :class="{ 'rotate-180': openYear }"></i>
                             </button>
 
-                            {{-- dropdown list tahun --}}
                             <div x-show="openYear"
                                  @click.away="openYear = false"
                                  x-transition
@@ -190,7 +219,7 @@
                             </tr>
                         @else
                             @foreach($laporan_bulanan as $row)
-                                <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/70 transition">
+                                <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition">
                                     <td class="py-2 text-slate-800">
                                         {{ $row['bulan'] }}
                                     </td>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 py-8">
     {{-- Grid utama --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
 
         {{-- Card: Ringkasan Harian (dipindah ke atas, full width) --}}
         <div class="lg:col-span-3 rounded-2xl bg-white shadow-md border border-slate-100 p-5">
@@ -26,25 +26,25 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                 <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
                     <p class="text-xs text-slate-500">Total Barang</p>
-                    <p class="mt-1 text-xl font-semibold text-slate-900">
+                    <p class="mt-1 text-lg md:text-xl font-semibold text-slate-900 break-words">
                         {{ $totalBarang }}
                     </p>
                 </div>
                 <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
                     <p class="text-xs text-emerald-600">Barang Sudah Dibeli</p>
-                    <p class="mt-1 text-xl font-semibold text-emerald-700">
+                    <p class="mt-1 text-lg md:text-xl font-semibold text-emerald-700 break-words">
                         {{ $barangSudahDibeli }}
                     </p>
                 </div>
                 <div class="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
                     <p class="text-xs text-amber-600">Barang Belum Dibeli</p>
-                    <p class="mt-1 text-xl font-semibold text-amber-700">
+                    <p class="mt-1 text-lg md:text-xl font-semibold text-amber-700 break-words">
                         {{ $barangBelumDibeli }}
                     </p>
                 </div>
                 <div class="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 flex flex-col justify-between">
                     <p class="text-xs text-rose-600">Total Belanja Hari Ini</p>
-                    <p class="mt-1 text-xl font-semibold text-rose-700">
+                    <p class="mt-1 text-lg md:text-xl font-semibold text-rose-700 break-words">
                         Rp{{ number_format($totalBelanja, 0, ',', '.') }}
                     </p>
                 </div>
@@ -82,13 +82,13 @@
                 $sudahDibeli = $itemsHariIni->where('status', 'Sudah Dibeli');
             @endphp
 
-            <div class="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3 max-h-64 overflow-y-auto">
+            <div class="mt-3 rounded-xl border border-slate-100 bg-slate-50/60 px-3 sm:px-4 py-3 max-h-80 md:max-h-72 lg:max-h-64 overflow-y-auto">
                 @if($itemsHariIni->isEmpty())
                     <p class="text-sm text-slate-400 text-center py-3">
                         Tidak ada belanja hari ini.
                     </p>
                 @else
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-sm">
                         {{-- Kolom: Belum Dibeli --}}
                         <div>
                             <p class="mb-2 text-xs font-semibold text-amber-700 uppercase tracking-wide">
@@ -154,8 +154,8 @@
             </div>
 
             {{-- Donut chart --}}
-            <div class="mt-2 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-3 h-40 flex items-center justify-center">
-                <div class="w-32 h-32">
+            <div class="mt-2 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-3 h-48 md:h-56 flex items-center justify-center">
+                <div class="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40">
                     <canvas id="pengeluaran-bulan-ini-chart"></canvas>
                 </div>
             </div>
@@ -256,4 +256,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-

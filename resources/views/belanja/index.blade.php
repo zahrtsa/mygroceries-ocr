@@ -96,7 +96,7 @@
                             Rp {{ number_format($item->total_harga, 0, ',', '.') }}
                         </td>
                         <td class="p-3 text-center">
-                            {{-- TOGGLE STATUS: desktop teks penuh, mobile teks pendek --}}
+                            {{-- TOGGLE STATUS --}}
                             <form method="POST" action="{{ route('belanja.item.update', $item->id) }}">
                                 @csrf
                                 @method('PATCH')
@@ -164,10 +164,13 @@
         </table>
     </div>
 
-    {{-- PAGINATION: tampil di semua mode view --}}
+    {{-- PAGINATION: pakai component light kecil --}}
     @if($itemBelanjas instanceof \Illuminate\Pagination\LengthAwarePaginator)
-        <div class="mt-4">
-            {{ $itemBelanjas->onEachSide(1)->links() }}
+        <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-slate-400">
+            <span>
+                Showing {{ $itemBelanjas->firstItem() }} to {{ $itemBelanjas->lastItem() }} of {{ $itemBelanjas->total() }} results
+            </span>
+            <x-pagination-mygroceries :paginator="$itemBelanjas" />
         </div>
     @endif
 </div>
