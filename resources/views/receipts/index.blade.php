@@ -7,7 +7,8 @@
 
 <div class="max-w-6xl mx-auto px-4 lg:px-0"
      x-data="receiptPage()"
-     x-init="init({!! $tanggalTotals->toJson(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}, '{{ now()->format('Y-m-d') }}')"
+    x-init='init(@json($tanggalTotals), "{{ now()->format("Y-m-d") }}")'
+     x-on:tanggal-belanja-changed.window="setSelected($event.detail)"
 >
 
     {{-- Header --}}
@@ -43,17 +44,8 @@
             @csrf
 
             <div class="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
-                {{-- Datepicker custom --}}
-                <div class="w-full lg:w-1/3"
-                     x-data="customDatepicker('{{ now()->format('Y-m-d') }}')"
-                     x-init="
-                        init();
-                        $watch('value', function (val) {
-                            $root.selectedDate = val || $root.today;
-                            $root.updateInfo();
-                        });
-                     "
-                >
+                {{-- Datepicker jQuery UI --}}
+                <div class="w-full lg:w-1/3">
                     <label class="block text-xs font-semibold text-gray-600 mb-1">
                         Tanggal Belanja
                     </label>
@@ -68,92 +60,30 @@
 
                         <input
                             type="text"
-                            readonly
-                            x-on:click="toggle()"
-                            x-on:keydown.escape.window="open = false"
-                            x-model="displayValue"
-                            placeholder="dd/mm/yyyy"
-                            class="w-full pl-10 pr-10 py-2.5 text-xs md:text-sm text-slate-800 placeholder:text-slate-400
-                                   rounded-full border border-slate-200 bg-slate-50 shadow-sm cursor-pointer
+                            name="tanggal_belanja"
+                            class="datePicker w-full pl-10 pr-3 py-2.5 text-xs md:text-sm text-slate-800
+                                   rounded-full border border-slate-200 bg-white shadow-sm
                                    focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                            autocomplete="off"
+                            placeholder="yyyy-mm-dd"
+                            value="{{ old('tanggal_belanja', now()->format('Y-m-d')) }}"
                         >
-
-                        <input type="hidden" name="tanggal_belanja" x-model="value">
-
-                        <button type="button"
-                                x-show="value"
-                                x-on:click="clear()"
-                                class="absolute inset-y-0 right-8 flex items-center text-xs text-slate-400 hover:text-slate-600">
-                            ✕
-                        </button>
-
-                        <div x-show="open"
-                             x-transition
-                             x-on:click.outside="open = false"
-                             class="absolute z-50 mt-2 w-72 bg-white rounded-2xl shadow-lg border border-slate-100 p-3">
-                            <div class="flex items-center justify-between mb-2">
-                                <button type="button"
-                                        class="p-1.5 rounded-full hover:bg-slate-100"
-                                        x-on:click="prevMonth()">
-                                    <i class="fa-solid fa-chevron-left text-xs text-slate-500"></i>
-                                </button>
-                                <div class="text-sm font-semibold text-slate-800" x-text="monthLabel"></div>
-                                <button type="button"
-                                        class="p-1.5 rounded-full hover:bg-slate-100"
-                                        x-on:click="nextMonth()">
-                                    <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
-                                </button>
-                            </div>
-
-                            <div class="grid grid-cols-7 gap-1 mb-1">
-                                <template x-for="d in ['Su','Mo','Tu','We','Th','Fr','Sa']" :key="d">
-                                    <div class="text-[11px] text-center text-slate-400" x-text="d"></div>
-                                </template>
-                            </div>
-
-                            <div class="grid grid-cols-7 gap-1">
-                                <template x-for="blank in blanks" :key="'b'+blank">
-                                    <div class="h-7 text-xs"></div>
-                                </template>
-
-                                <template x-for="day in days" :key="'d'+day">
-                                    <button type="button"
-                                            class="h-7 w-7 mx-auto flex items-center justify-center text-xs rounded-full transition"
-                                            :class="{
-                                                'bg-rose-500 text-white font-semibold': isSelected(day),
-                                                'bg-slate-900 text-white font-semibold': isToday(day) && !isSelected(day),
-                                                'text-slate-700 hover:bg-slate-100': !isToday(day) && !isSelected(day)
-                                            }"
-                                            x-text="day"
-                                            x-on:click="select(day)">
-                                    </button>
-                                </template>
-                            </div>
-
-                            <div class="mt-2 flex justify-end">
-                                <button type="button"
-                                        class="px-3 py-1.5 rounded-full text-[11px] font-medium text-rose-600 hover:bg-rose-50"
-                                        x-on:click="selectToday()">
-                                    Today
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="mt-2 text-[11px]">
                         <p class="text-gray-500">
                             Tanggal terpilih:
-                            <span class="font-semibold text-gray-800" x-text=" $root.formattedDate "></span>
+                            <span class="font-semibold text-gray-800" x-text="formattedDate"></span>
                         </p>
                         <p class="mt-1"
-                           :class="$root.hasTotal ? 'text-emerald-600' : 'text-gray-500'">
-                            <template x-if="$root.hasTotal">
+                           :class="hasTotal ? 'text-emerald-600' : 'text-gray-500'">
+                            <template x-if="hasTotal">
                                 <span>
                                     Total belanja di tanggal ini:
-                                    <span class="font-semibold" x-text="$root.formattedTotal"></span>
+                                    <span class="font-semibold" x-text="formattedTotal"></span>
                                 </span>
                             </template>
-                            <template x-if="!$root.hasTotal">
+                            <template x-if="!hasTotal">
                                 <span>
                                     Belum ada belanja yang tercatat di tanggal ini. Struk yang diupload akan membuat catatan baru.
                                 </span>
@@ -359,104 +289,6 @@
 
 @push('scripts')
 <script>
-    function customDatepicker(initial) {
-        return {
-            open: false,
-            value: '',
-            displayValue: '',
-            month: 0,
-            year: 0,
-            days: [],
-            blanks: [],
-            monthNames: [
-                'January','February','March','April','May','June',
-                'July','August','September','October','November','December'
-            ],
-
-            get monthLabel() {
-                return this.monthNames[this.month] + ' ' + this.year;
-            },
-
-            init: function () {
-                var iso = initial || new Date().toISOString().slice(0,10);
-                this.fromString(iso);
-                this.buildCalendar();
-            },
-
-            toggle: function () { this.open = !this.open; },
-            clear:  function () { this.value = ''; this.displayValue = ''; },
-
-            fromString: function (iso) {
-                var parts = iso.split('-');
-                if (parts.length !== 3) return;
-                this.year  = parseInt(parts[0], 10);
-                this.month = parseInt(parts[1], 10) - 1;
-                var day    = parseInt(parts[2], 10);
-                this.value = iso;
-                this.displayValue = this.formatDisplay(new Date(this.year, this.month, day));
-            },
-
-            formatDisplay: function (date) {
-                if (!date || isNaN(date)) return '';
-                var d  = String(date.getDate()).padStart(2, '0');
-                var m  = String(date.getMonth() + 1).padStart(2, '0');
-                var yy = date.getFullYear();
-                return d + '/' + m + '/' + yy;
-            },
-
-            buildCalendar: function () {
-                var firstDay    = new Date(this.year, this.month, 1).getDay();
-                var daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
-
-                this.blanks = [];
-                for (var i = 0; i < firstDay; i++) this.blanks.push(i);
-
-                this.days = [];
-                for (var d = 1; d <= daysInMonth; d++) this.days.push(d);
-            },
-
-            prevMonth: function () {
-                if (this.month === 0) { this.month = 11; this.year--; }
-                else { this.month--; }
-                this.buildCalendar();
-            },
-
-            nextMonth: function () {
-                if (this.month === 11) { this.month = 0; this.year++; }
-                else { this.month++; }
-                this.buildCalendar();
-            },
-
-            isToday: function (day) {
-                var today = new Date();
-                var d = new Date(this.year, this.month, day);
-                return today.toDateString() === d.toDateString();
-            },
-
-            isSelected: function (day) {
-                if (!this.value) return false;
-                var d = new Date(this.year, this.month, day);
-                var iso = d.toISOString().slice(0,10);
-                return iso === this.value;
-            },
-
-            select: function (day) {
-                var d = new Date(this.year, this.month, day);
-                this.value = d.toISOString().slice(0,10);
-                this.displayValue = this.formatDisplay(d);
-                this.open = false;
-            },
-
-            selectToday: function () {
-                var today = new Date();
-                this.year  = today.getFullYear();
-                this.month = today.getMonth();
-                this.buildCalendar();
-                this.select(today.getDate());
-            }
-        }
-    }
-
     function receiptPage() {
         return {
             totalsByDate: {},
@@ -469,7 +301,19 @@
             init: function (totals, today) {
                 this.totalsByDate = totals || {};
                 this.today = today;
-                this.selectedDate = today;
+
+                var input = document.querySelector('.datePicker');
+                if (input && input.value) {
+                    this.selectedDate = input.value;
+                } else {
+                    this.selectedDate = today;
+                }
+
+                this.updateInfo();
+            },
+
+            setSelected: function (dateStr) {
+                this.selectedDate = dateStr || this.today;
                 this.updateInfo();
             },
 
@@ -493,9 +337,19 @@
                 });
             },
 
-            formatCurrency: function (n) {
-                return 'Rp ' + (n || 0).toLocaleString('id-ID');
+           formatCurrency: function (n) {
+                n = Number(n || 0);
+
+                // bulatkan ke rupiah (tanpa desimal)
+                n = Math.round(n);
+
+                // pisah ribuan dengan titik, tanpa koma
+                return 'Rp ' + n.toLocaleString('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                });
             }
+
         }
     }
 
@@ -591,6 +445,33 @@
         btn.disabled = true;
         spinner.classList.remove('hidden');
         btnText.textContent = 'Memproses...';
+    });
+
+    // Inisialisasi jQuery UI Datepicker + kirim event ke Alpine
+    $(function() {
+        $('.datePicker').datepicker({
+            dateFormat: 'yy-mm-dd',
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            onSelect: function(dateText) {
+                const root = this.closest('[x-data]');
+                if (root) {
+                    root.dispatchEvent(new CustomEvent('tanggal-belanja-changed', {
+                        detail: dateText,
+                        bubbles: true
+                    }));
+                }
+            }
+        }).on('change', function() {
+            const dateText = this.value;
+            const root = this.closest('[x-data]');
+            if (root) {
+                root.dispatchEvent(new CustomEvent('tanggal-belanja-changed', {
+                    detail: dateText,
+                    bubbles: true
+                }));
+            }
+        });
     });
 </script>
 @endpush

@@ -29,6 +29,9 @@
 
     {{-- Flowbite Datepicker --}}
     <script src="https://cdn.jsdelivr.net/npm/flowbite-datepicker@1.3.2/dist/js/datepicker.min.js"></script>
+    <link rel="stylesheet"
+      href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
+
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans antialiased">
 
@@ -253,6 +256,9 @@
     </div>
 
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
 @stack('scripts')
 </body>

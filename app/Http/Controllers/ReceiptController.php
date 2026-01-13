@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Receipt;
 use App\Models\DaftarBelanja;
 use App\Models\PengeluaranBulanan;
+use App\Models\Receipt;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use thiagoalessio\TesseractOCR\TesseractOCR;
-use Carbon\Carbon;
 
 class ReceiptController extends Controller
 {
@@ -23,20 +23,15 @@ class ReceiptController extends Controller
             ->latest()
             ->get();
 
-        // siapkan data tanggal & total (key: Y-m-d)
-        $tanggalTotals = $receipts->groupBy(function ($r) {
-            // pakai transaction_date kalau ada, fallback ke tanggal_belanja di relasi, lalu created_at
-            $date = $r->transaction_date
-                ?? optional($r->daftarBelanja)->tanggal_belanja
-                ?? $r->created_at;
-
-            return optional($date)->format('Y-m-d');
-        })->map(function ($group) {
-            return $group->sum('total_amount'); // jumlahkan total per hari
-        })->filter(); // buang key null / 0 total
+        // TOTAL BELANJA PER TANGGAL (pakai tabel daftar_belanjas)
+        // key: Y-m-d, value: total_belanja di hari itu (akumulasi semua struk)
+        $tanggalTotals = DaftarBelanja::where('user_id', $user->id)
+            ->selectRaw('DATE(tanggal_belanja) as tgl, SUM(total_belanja) as total')
+            ->groupBy('tgl')
+            ->pluck('total', 'tgl'); // contoh: ["2026-01-04" => 150000]
 
         return view('receipts.index', [
-            'receipts'      => $receipts,
+            'receipts' => $receipts,
             'tanggalTotals' => $tanggalTotals,
         ]);
     }
@@ -45,9 +40,9 @@ class ReceiptController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'receipt_image'     => 'required|image|mimes:jpg,jpeg,png|max:4096',
+            'receipt_image' => 'required|image|mimes:jpg,jpeg,png|max:4096',
             'daftar_belanja_id' => 'nullable|exists:daftar_belanjas,id',
-            'tanggal_belanja'   => 'nullable|date',
+            'tanggal_belanja' => 'nullable|date',
         ]);
 
         $user = Auth::user();
@@ -62,7 +57,7 @@ class ReceiptController extends Controller
         // Cari atau buat DaftarBelanja untuk tanggal tsb (hindari duplikat)
         $daftarBelanja = DaftarBelanja::firstOrCreate(
             [
-                'user_id'         => $user->id,
+                'user_id' => $user->id,
                 'tanggal_belanja' => $tanggalBelanja,
             ],
             [
@@ -74,45 +69,45 @@ class ReceiptController extends Controller
         $request->merge(['daftar_belanja_id' => $daftarBelanja->id]);
 
         // Simpan file dengan nama berdasarkan tanggal upload
-        $file      = $request->file('receipt_image');
+        $file = $request->file('receipt_image');
         $extension = $file->getClientOriginalExtension();
         $timestamp = now()->format('Ymd_His');
-        $filename  = 'receipt_' . $timestamp . '.' . $extension;
+        $filename = 'receipt_'.$timestamp.'.'.$extension;
 
         // simpan ke storage/app/public/receipts
         $path = $file->storeAs('receipts', $filename, 'public');
 
         // OCR
-        $ocrText = $this->runOCR(storage_path('app/public/' . $path));
+        $ocrText = $this->runOCR(storage_path('app/public/'.$path));
 
-        logger("==== OCR RESULT BEGIN ====");
+        logger('==== OCR RESULT BEGIN ====');
         logger($ocrText);
-        logger("==== OCR RESULT END ====");
+        logger('==== OCR RESULT END ====');
 
-        $ocr_total    = $this->extractTotal($ocrText);
+        $ocr_total = $this->extractTotal($ocrText);
         $ocr_subtotal = $this->extractSubtotal($ocrText);
 
-        logger("Extracted Total: " . ($ocr_total ?? 'NULL'));
-        logger("Extracted Subtotal: " . ($ocr_subtotal ?? 'NULL'));
+        logger('Extracted Total: '.($ocr_total ?? 'NULL'));
+        logger('Extracted Subtotal: '.($ocr_subtotal ?? 'NULL'));
 
         if ($ocr_total === null) {
-            logger("Warning: Total not extracted from OCR text.");
+            logger('Warning: Total not extracted from OCR text.');
         }
 
         $receipt = Receipt::create([
-            'user_id'           => $user->id,
+            'user_id' => $user->id,
             'daftar_belanja_id' => $daftarBelanja->id,
-            'filename'          => $filename,
-            'file_path'         => $path,
-            'transaction_date'  => $tanggalBelanja,
-            'extracted_text'    => $ocrText,
+            'filename' => $filename,
+            'file_path' => $path,
+            'transaction_date' => $tanggalBelanja,
+            'extracted_text' => $ocrText,
 
-            'ocr_total'   => $ocr_total,
-            'ocr_subtotal'=> $ocr_subtotal,
+            'ocr_total' => $ocr_total,
+            'ocr_subtotal' => $ocr_subtotal,
 
-            'total_amount'    => $ocr_total,
+            'total_amount' => $ocr_total,
             'subtotal_amount' => $ocr_subtotal,
-            'status_ocr'      => 'Selesai',
+            'status_ocr' => 'Selesai',
         ]);
 
         // Update total_belanja di daftar_belanja (kalau ada total)
@@ -153,13 +148,13 @@ class ReceiptController extends Controller
         $this->authorizeReceipt($receipt);
 
         $request->validate([
-            'total_amount'    => 'required|string',
+            'total_amount' => 'required|string',
             'subtotal_amount' => 'nullable|string',
         ]);
 
         $oldTotal = $receipt->total_amount ?? 0;
 
-        $total    = $this->normalizeDecimal($request->total_amount);
+        $total = $this->normalizeDecimal($request->total_amount);
         $subtotal = $request->subtotal_amount
             ? $this->normalizeDecimal($request->subtotal_amount)
             : null;
@@ -169,7 +164,7 @@ class ReceiptController extends Controller
         }
 
         $receipt->update([
-            'total_amount'    => $total,
+            'total_amount' => $total,
             'subtotal_amount' => $subtotal,
         ]);
 
@@ -219,7 +214,7 @@ class ReceiptController extends Controller
         $newTotal = $receipt->ocr_total ?? 0;
 
         $receipt->update([
-            'total_amount'    => $receipt->ocr_total,
+            'total_amount' => $receipt->ocr_total,
             'subtotal_amount' => $receipt->ocr_subtotal,
         ]);
 
@@ -243,13 +238,14 @@ class ReceiptController extends Controller
     {
         try {
             return (new TesseractOCR($imagePath))
-                ->executable('C:\\Program Files\\Tesseract-OCR\\tesseract.exe') // sesuaikan di server kamu
+                ->executable('C:\\Program Files\\Tesseract-OCR\\tesseract.exe') // sesuaikan di server
                 ->psm(6)
                 ->oem(3)
                 ->lang('eng', 'ind')
                 ->run();
         } catch (\Exception $e) {
-            logger("OCR Error: " . $e->getMessage());
+            logger('OCR Error: '.$e->getMessage());
+
             return '';
         }
     }
@@ -261,7 +257,7 @@ class ReceiptController extends Controller
         $text = str_replace(["\t", "\n", "\r"], ' ', $text);
         $text = preg_replace('/\s+/', ' ', trim($text));
 
-        logger("Cleaned OCR text for total extraction: " . $text);
+        logger('Cleaned OCR text for total extraction: '.$text);
 
         $patterns = [
             '/total\s*[:\-]?\s*([0-9\.,\s]*[0-9])/i',
@@ -276,41 +272,44 @@ class ReceiptController extends Controller
         ];
 
         foreach ($patterns as $pattern) {
-            logger("Checking pattern for total: " . $pattern);
+            logger('Checking pattern for total: '.$pattern);
             if (preg_match($pattern, $text, $m)) {
                 $value = trim(end($m));
                 logger("Pattern matched for total: {$pattern} with raw value: {$value}");
                 $normalized = $this->normalizeDecimal($value);
-                logger("Normalized value for total: " . ($normalized ?? 'NULL'));
+                logger('Normalized value for total: '.($normalized ?? 'NULL'));
                 if ($normalized !== null && $this->isValidTotal($normalized)) {
-                    logger("Valid total extracted: " . $normalized);
+                    logger('Valid total extracted: '.$normalized);
+
                     return $normalized;
                 }
             }
         }
 
-        logger("No pattern matched for total, using fallback.");
+        logger('No pattern matched for total, using fallback.');
 
         preg_match_all('/(\d[\d\.,]*)/', $text, $matches);
 
         $validNumbers = [];
         foreach ($matches[1] as $numStr) {
-            logger("Processing candidate: " . $numStr);
+            logger('Processing candidate: '.$numStr);
             $normalized = $this->normalizeDecimal($numStr);
-            logger("Normalized candidate: " . ($normalized ?? 'NULL'));
+            logger('Normalized candidate: '.($normalized ?? 'NULL'));
             if ($normalized !== null && $this->isValidTotal($normalized)) {
                 $validNumbers[] = $normalized;
-                logger("Valid candidate for total: " . $normalized);
+                logger('Valid candidate for total: '.$normalized);
             }
         }
 
         if (!empty($validNumbers)) {
             $selected = max($validNumbers);
-            logger("Selected total from fallback: " . $selected);
+            logger('Selected total from fallback: '.$selected);
+
             return $selected;
         }
 
-        logger("No valid total found.");
+        logger('No valid total found.');
+
         return null;
     }
 
@@ -328,49 +327,56 @@ class ReceiptController extends Controller
         ];
 
         foreach ($patterns as $pattern) {
-            logger("Checking pattern for subtotal: " . $pattern);
+            logger('Checking pattern for subtotal: '.$pattern);
             if (preg_match($pattern, $text, $m)) {
                 $value = trim(end($m));
                 logger("Pattern matched for subtotal: {$pattern} with raw value: {$value}");
                 $normalized = $this->normalizeDecimal($value);
-                logger("Normalized value for subtotal: " . ($normalized ?? 'NULL'));
+                logger('Normalized value for subtotal: '.($normalized ?? 'NULL'));
                 if ($normalized !== null && $normalized >= 1000 && $normalized <= 5000000) {
-                    logger("Valid subtotal extracted: " . $normalized);
+                    logger('Valid subtotal extracted: '.$normalized);
+
                     return $normalized;
                 }
             }
         }
 
-        logger("No pattern matched for subtotal.");
+        logger('No pattern matched for subtotal.');
+
         return null;
     }
 
     private function isValidTotal(float $value): bool
     {
         if ($value < 10000 || $value > 10000000) {
-            logger("Total rejected: out of range " . $value);
+            logger('Total rejected: out of range '.$value);
+
             return false;
         }
 
         $strValue = (string) $value;
 
         if (preg_match('/^[3456]\d{12,18}$/', $strValue)) {
-            logger("Total rejected: looks like credit card " . $value);
+            logger('Total rejected: looks like credit card '.$value);
+
             return false;
         }
 
         if (preg_match('/^(19|20|21)\d{2}$/', $strValue)) {
-            logger("Total rejected: looks like year " . $value);
+            logger('Total rejected: looks like year '.$value);
+
             return false;
         }
 
         if (preg_match('/^08\d{8,10}$/', $strValue) || (strlen($strValue) >= 10 && strlen($strValue) <= 12)) {
-            logger("Total rejected: looks like phone number " . $value);
+            logger('Total rejected: looks like phone number '.$value);
+
             return false;
         }
 
         if (strlen($strValue) > 12) {
-            logger("Total rejected: too long " . $value);
+            logger('Total rejected: too long '.$value);
+
             return false;
         }
 
@@ -379,7 +385,9 @@ class ReceiptController extends Controller
 
     private function normalizeDecimal(string $value): ?float
     {
-        if (!$value) return null;
+        if (!$value) {
+            return null;
+        }
 
         $value = trim($value);
         $value = preg_replace('/[^\d\.,]/', '', $value);
@@ -414,12 +422,12 @@ class ReceiptController extends Controller
         $pengeluaran = PengeluaranBulanan::firstOrCreate(
             [
                 'user_id' => $user->id,
-                'bulan'   => $bulan,
-                'tahun'   => $tahun,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
             ],
             [
                 'total_pengeluaran' => 0,
-                'saldo_bersih'      => 0,
+                'saldo_bersih' => 0,
             ]
         );
 

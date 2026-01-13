@@ -1,3 +1,118 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* === jQuery UI Datepicker styling (final refined) === */
+
+.ui-datepicker {
+    box-sizing: border-box;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 0.75rem;
+    background-color: #ffffff;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    margin-top: 0.25rem;
+    min-width: 260px;
+    max-width: 320px;
+}
+
+
+/* ===== HEADER BULAN ===== */
+.ui-datepicker-header {
+    background: #f3f4f6;               /* gray-100 */
+    border: none;
+    padding: 0.35rem 0.5rem 0.45rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.ui-datepicker-title {
+    font-weight: 600;
+    color: #111827;                    /* gray-900 */
+}
+
+
+/* ===== PANAH PREV / NEXT ===== */
+.ui-datepicker-prev,
+.ui-datepicker-next {
+    top: 28% !important;
+    transform: translateY(-50%);
+    border-radius: 9999px;
+    border: none;
+}
+
+.ui-datepicker-prev span,
+.ui-datepicker-next span {
+    margin-top: 0 !important;
+}
+
+
+/* ===== GRID KALENDER ===== */
+.ui-datepicker-calendar {
+    border-collapse: separate;
+    border-spacing: 0.25rem;
+    margin-top: 0.35rem;
+}
+
+
+/* ===== HEADER HARI ===== */
+.ui-datepicker th {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #9ca3af;
+}
+
+
+/* ===== SEL TANGGAL ===== */
+.ui-datepicker td {
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+}
+
+
+/* ===== ANGKA TANGGAL (CENTER + TANPA BORDER) ===== */
+.ui-datepicker td a,
+.ui-datepicker td span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 2.2rem;
+    height: 2.2rem;
+
+    font-size: 0.8rem;
+    line-height: 1;
+    text-indent: 0;
+    padding: 0;
+    margin: 0;
+
+    border: none !important;          /* ⬅️ NO BORDER */
+    border-radius: 0.65rem;           /* agak melengkung */
+    background-color: #f9fafb;        /* soft gray */
+
+    transform: translateY(-0.02rem);  /* center optik */
+}
+
+
+/* ===== HOVER ===== */
+.ui-datepicker td a:hover {
+    background-color: #fee2e2;        /* red-100 */
+    color: #b91c1c;                   /* red-700 */
+}
+
+
+/* ===== HARI INI ===== */
+.ui-datepicker-today a {
+    background-color: #facc15;        /* yellow-400 */
+    color: #92400e !important;
+    font-weight: 600;
+}
+
+
+/* ===== HARI TERPILIH ===== */
+.ui-datepicker-current-day a {
+    background-color: #ef4444 !important; /* red-500 */
+    color: #ffffff !important;
+    font-weight: 700;
+}
